@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:twitch_clone/resources/auth_methods.dart';
@@ -33,6 +35,16 @@ class _LoginSigninScreenState extends State<LoginSigninScreen> {
   }
 
   @override
+  void dispose() {
+    loginEmailController.dispose();
+    loginPassController.dispose();
+    signinEmailController.dispose();
+    signinUsernameController.dispose();
+    signinPassController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return value
@@ -52,7 +64,11 @@ class _LoginSigninScreenState extends State<LoginSigninScreen> {
                     height: size.height / 6,
                   ),
                   textAndTextField(
-                      size, 'Email', loginEmailController, false),
+                    size,
+                    'Email',
+                    loginEmailController,
+                    false,
+                  ),
                   textAndTextField(size, 'Password', loginPassController, true),
                   Padding(
                     padding: EdgeInsets.only(
@@ -63,13 +79,13 @@ class _LoginSigninScreenState extends State<LoginSigninScreen> {
                       onTap: () async {
                         bool res = await AuthMethods().loginUser(
                             loginEmailController.text,
-                            loginPassController.text,context);
+                            loginPassController.text,
+                            context);
                         if (res) {
-                          Navigator.pushReplacement(
+                          Navigator.push(
                             context,
                             PageTransition(
                               type: PageTransitionType.leftToRight,
-
                               child: HomeScreen(),
                             ),
                           );

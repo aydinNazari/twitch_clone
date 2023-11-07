@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:twitch_clone/screen/browse_screen.dart';
 import 'package:twitch_clone/screen/feed_screen.dart';
@@ -20,3 +23,15 @@ List<Widget> navigatorListScreen = const [
   GoLiveScreen(),
   BrowseScreen()
 ];
+
+Future<Uint8List?>pickImager() async {
+  FilePickerResult? pickedImage =
+      await FilePicker.platform.pickFiles(type: FileType.image);
+  if(kIsWeb){
+    return pickedImage?.files.single.bytes;
+  }
+  if(pickedImage!=null){
+    return await File(pickedImage.files.single.path!).readAsBytes();
+  }
+  return null;
+}
