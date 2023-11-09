@@ -13,7 +13,7 @@ showSnackBar(BuildContext context, String txt, Color color) {
         txt,
       ),
       backgroundColor: color,
-      duration: const Duration(seconds: 1),
+      duration: const Duration(seconds: 2,),
     ),
   );
 }

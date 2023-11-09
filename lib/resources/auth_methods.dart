@@ -24,7 +24,9 @@ class AuthMethods {
     bool res = false;
     try {
       UserCredential cred = await _auth.createUserWithEmailAndPassword(
-          email: email, password: pass);
+        email: email,
+        password: pass,
+      );
       if (cred.user != null) {
         model.User user = model.User(
           uid: cred.user!.uid,

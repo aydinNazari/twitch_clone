@@ -2,6 +2,9 @@ import 'dart:typed_data';
 
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
+import 'package:page_transition/page_transition.dart';
+import 'package:twitch_clone/resources/firestore_methods.dart';
+import 'package:twitch_clone/screen/broadcast_screen.dart';
 import 'package:twitch_clone/utiles/colors.dart';
 import 'package:twitch_clone/utiles/utiles.dart';
 import 'package:twitch_clone/widgets/button_widget.dart';
@@ -17,12 +20,28 @@ class GoLiveScreen extends StatefulWidget {
 
 class _GoLiveScreenState extends State<GoLiveScreen> {
   TextEditingController titleController = TextEditingController();
-  bool isLoading=false;
+  bool isLoading = false;
 
   @override
   void dispose() {
     titleController.dispose();
     super.dispose();
+  }
+
+  goLiveStream() async {
+    String chanalId = await FireStoreMethods()
+        .startLiveStream(context, titleController.text, image);
+    print('rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr');
+    if (chanalId.isNotEmpty) {
+      showSnackBar(context, 'LiveStream has started sucsessfuly', Colors.green);
+      Navigator.push(
+        context,
+        PageTransition(
+          type: PageTransitionType.bottomToTop,
+          child: BroadScreen(),
+        ),
+      );
+    }
   }
 
   Uint8List? image;
@@ -130,10 +149,13 @@ class _GoLiveScreenState extends State<GoLiveScreen> {
         ),
         bottomNavigationBar: Padding(
           padding: EdgeInsets.symmetric(horizontal: size.width / 25),
-          child: const ButtonWidget(
-            backGColor: buttonColor,
-            txt: 'Go Live!',
-            buttonTextColor: Colors.white,
+          child: InkWell(
+            onTap: goLiveStream,
+            child: const ButtonWidget(
+              backGColor: buttonColor,
+              txt: 'Go Live!',
+              buttonTextColor: Colors.white,
+            ),
           ),
         ),
       ),
