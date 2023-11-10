@@ -17,13 +17,15 @@ class FireStoreMethods {
 
   Future<String> startLiveStream(
       BuildContext context, String title, Uint8List? image) async {
-
     final user = Provider.of<UserProvider>(context, listen: false);
     String chanalId = '';
     try {
       if (title.isNotEmpty && image != null) {
-        if (!(await _firestore.collection('livestream').doc(user.user.uid).get())
-            .exists) {
+        if (!((await _firestore
+                .collection('livestream')
+                .doc(user.user.uid + user.user.username)
+                .get())
+            .exists)) {
           print(user.user.uid);
           String thumbnailUrl = await _storagMethods.uploadImageToStorage(
               'livestream-thumbnails', image, user.user.uid);
@@ -44,8 +46,7 @@ class FireStoreMethods {
               .collection('livestream')
               .doc(chanalId)
               .set(liveStream.toMap());
-
-        }else{
+        } else {
           showSnackBar(context, 'Tow livestream can not start', Colors.red);
         }
       } else {

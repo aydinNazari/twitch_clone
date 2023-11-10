@@ -33,14 +33,20 @@ class _GoLiveScreenState extends State<GoLiveScreen> {
         .startLiveStream(context, titleController.text, image);
     print('rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr');
     if (chanalId.isNotEmpty) {
-      showSnackBar(context, 'LiveStream has started sucsessfuly', Colors.green);
-      Navigator.push(
-        context,
-        PageTransition(
-          type: PageTransitionType.bottomToTop,
-          child: BroadScreen(),
-        ),
-      );
+      setState(() {
+        showSnackBar(
+            context, 'LiveStream has started sucsessfuly', Colors.green);
+        Navigator.push(
+          context,
+          PageTransition(
+            type: PageTransitionType.bottomToTop,
+            child: BroadScreen(
+              isBroadCast: true,
+              chanellID: chanalId,
+            ),
+          ),
+        );
+      });
     }
   }
 
