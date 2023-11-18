@@ -10,6 +10,10 @@ class AuthMethods {
   final _auth = FirebaseAuth.instance;
   final _userRef = FirebaseFirestore.instance.collection('users');
 
+  Future<void> signOut() async {
+    await _auth.signOut();
+  }
+
   Future<model.User> getCurrentUser(String? uid) async {
     DocumentSnapshot cred = await _userRef.doc(uid).get();
     model.User user = model.User(

@@ -31,7 +31,6 @@ class _GoLiveScreenState extends State<GoLiveScreen> {
   goLiveStream() async {
     String chanalId = await FireStoreMethods()
         .startLiveStream(context, titleController.text, image);
-    print('rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr');
     if (chanalId.isNotEmpty) {
       setState(() {
         showSnackBar(
