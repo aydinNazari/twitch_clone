@@ -4,7 +4,6 @@ import 'package:firebase_storage/firebase_storage.dart';
 
 class StorageMethods {
   final FirebaseStorage _storage = FirebaseStorage.instance;
-
   Future<String> uploadImageToStorage(
       String childName, Uint8List file, String uid) async {
     Reference ref = _storage.ref().child(childName).child(uid);
@@ -15,9 +14,11 @@ class StorageMethods {
       ),
     );
     TaskSnapshot snap = await uploadTask;
-
     String downloadUrl = await snap.ref.getDownloadURL();
-
     return downloadUrl;
   }
+/*  void deletImageStorage(String uid){
+    Reference ref = _storage.ref().child('livestream-thumbnails');
+    if(uid==ref.)
+  }*/
 }

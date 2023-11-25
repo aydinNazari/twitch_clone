@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:twitch_clone/providers/user_provider.dart';
 import 'package:twitch_clone/resources/firestore_methods.dart';
 import 'package:twitch_clone/screen/home_screen.dart';
+import 'package:twitch_clone/widgets/chatWidget.dart';
 import '../config/app_id.dart';
 import 'package:agora_rtc_engine/rtc_local_view.dart' as RtcLocalView;
 import 'package:agora_rtc_engine/rtc_remote_view.dart' as RtcRemoteView;
@@ -26,6 +27,8 @@ class _BroadScreenState extends State<BroadScreen> {
   late final RtcEngine _engine;
 
   List<int> remotUid = [];
+  bool switchCamera = true;
+  bool isMute = false;
 
   @override
   void initState() {
@@ -33,23 +36,24 @@ class _BroadScreenState extends State<BroadScreen> {
     _initEngine();
   }
 
+  void _switchCamera() {
+    _engine.switchCamera().then((value) {
+      setState(() {
+        switchCamera = !switchCamera;
+      });
+    }).catchError((error) {
+      debugPrint('switch camera $error');
+    });
+  }
+
+  Future<void> onToggleMute() async {
+    setState(() {
+      isMute = !isMute;
+    });
+    await _engine.muteLocalAudioStream(isMute);
+  }
+
   void _initEngine() async {
-    /* _engine = ();
-    await _engine.initialize(RtcEngineContext(
-      appId: appID,
-      channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
-    ));
-    _addListeners();
-    await _engine.enableVideo();
-    await _engine.startPreview();
-    await _engine
-        .setChannelProfile(ChannelProfileType.channelProfileLiveBroadcasting);
-    if (widget.isBroadCast) {
-      _engine.setClientRole(role: ClientRoleType.clientRoleBroadcaster);
-    } else {
-      _engine.setClientRole(role: ClientRoleType.clientRoleAudience);
-    }
-    _joinChannel();*/
     _engine = await RtcEngine.createWithContext(RtcEngineContext(appID));
     _addListeners();
     await _engine.enableVideo();
@@ -73,44 +77,9 @@ class _BroadScreenState extends State<BroadScreen> {
       'testing123',
       Provider.of<UserProvider>(context, listen: false).user.uid,
     );
-    /*await _engine.joinChannelWithUserAccount(
-        token: tempToken,
-        channelId: 'testing123',
-        userAccount:
-        Provider
-            .of<UserProvider>(context, listen: false)
-            .user
-            .uid);*/
   }
 
   void _addListeners() {
-    /*  _engine.registerEventHandler(
-      RtcEngineEventHandler(
-          onJoinChannelSuccess: (RtcConnection connection, int elapsed) {
-            debugPrint('joinChanel sucsess $connection - $elapsed');
-          },
-          onUserJoined: (RtcConnection connection, int remoteUid, int elapsed) {
-            debugPrint('userJoiend: $connection - $remoteUid - $elapsed');
-            setState(() {
-              remotUid.add(remoteUid);
-            });
-          },
-          onUserOffline: (RtcConnection connection, int remoteUid,
-              UserOfflineReasonType reason) {
-            debugPrint("UserOffline $remoteUid - $reason");
-            setState(
-                  () {
-                remotUid.removeWhere((element) => element == remoteUid);
-              },
-            );
-          },
-          onLeaveChannel: (RtcConnection connection, RtcStats stats) {
-            debugPrint('leaveChannel $stats');
-            setState(() {
-              remotUid.clear();
-            });
-          }),
-    );*/
     _engine.setEventHandler(
       RtcEngineEventHandler(
         joinChannelSuccess: (channel, uid, elapsed) {
@@ -138,52 +107,94 @@ class _BroadScreenState extends State<BroadScreen> {
     );
   }
 
-  _renderVideo(user) {
+  _renderVideo(user, Size size) {
     String controlUid = user.uid + user.username;
-    return AspectRatio(
-      aspectRatio: 16 / 9,
-      child: controlUid == widget.chanellID
-          ? const RtcLocalView.SurfaceView(
-              zOrderMediaOverlay: true,
-              zOrderOnTop: true,
-            )
-          : remotUid.isNotEmpty
-              ? kIsWeb
-                  ? RtcRemoteView.SurfaceView(
-                      uid: remotUid[0],
-                      channelId: widget.chanellID,
-                    )
-                  : RtcRemoteView.TextureView(
-                      uid: remotUid[0],
-                      channelId: widget.chanellID,
-                    )
-              : Container(),
+    return Stack(
+      children: [
+        AspectRatio(
+          aspectRatio: 16 / 9,
+          child: controlUid == widget.chanellID
+              ? const RtcLocalView.SurfaceView(
+                  zOrderMediaOverlay: true,
+                  zOrderOnTop: true,
+                )
+              : remotUid.isNotEmpty
+                  ? kIsWeb
+                      ? RtcRemoteView.SurfaceView(
+                          uid: remotUid[0],
+                          channelId: widget.chanellID,
+                        )
+                      : RtcRemoteView.TextureView(
+                          uid: remotUid[0],
+                          channelId: widget.chanellID,
+                        )
+                  : Container(),
+        ),
+        if ('${user.uid}${user.username}' == widget.chanellID)
+          Positioned(
+            bottom: size.height / 100,
+            right: size.width/45,
+            child: Row(
+              children: [
+                InkWell(
+                  onTap: _switchCamera,
+                  child: SizedBox(
+                    width: size.width / 6,
+                    height: size.height / 20,
+                    child: Image.asset(
+                      'assets/icons/switch_camera.png',
+                    ),
+                  ),
+                ),
+                InkWell(
+                  onTap: onToggleMute,
+                  child: isMute
+                      ? SizedBox(
+                          width: size.width / 12,
+                          height: size.height / 20,
+                          child: Image.asset(
+                            'assets/icons/volume.png',
+                          ),
+                        )
+                      : SizedBox(
+                          width: size.width / 12,
+                          height: size.height / 20,
+                          child: Image.asset(
+                            'assets/icons/mute.png',
+                          ),
+                        ),
+                )
+              ],
+            ),
+          ),
+      ],
     );
   }
 
   _leaveChannal() async {
-    print('tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt');
     _engine.leaveChannel();
-    print('bakkkk');
-    print(Provider.of<UserProvider>(context, listen: false).user.username);
-    print(widget.chanellID);
-    if (Provider.of<UserProvider>(context, listen: false).user.username ==
-        widget.chanellID) {
+    String userNameUid =
+        Provider.of<UserProvider>(context, listen: false).user.uid +
+            Provider.of<UserProvider>(context, listen: false).user.username;
+    if (userNameUid == widget.chanellID) {
       await FireStoreMethods().endLiveStream(widget.chanellID);
     } else {
       await FireStoreMethods().updateViewCount(widget.chanellID, false);
     }
-    Navigator.push(
-      context,
-      PageTransition(
-        type: PageTransitionType.rightToLeft,
-        child: HomeScreen(),
-      ),
-    );
+    setState(() {
+      Navigator.push(
+        context,
+        PageTransition(
+          type: PageTransitionType.rightToLeft,
+          child: const HomeScreen(),
+        ),
+      );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     final user = Provider.of<UserProvider>(context, listen: false).user;
     return WillPopScope(
       onWillPop: () async {
@@ -193,7 +204,12 @@ class _BroadScreenState extends State<BroadScreen> {
       child: Scaffold(
         body: Column(
           children: [
-            _renderVideo(user),
+            _renderVideo(user, size),
+            Expanded(
+              child: ChatWidget(
+                chanalId: widget.chanellID,
+              ),
+            )
           ],
         ),
       ),

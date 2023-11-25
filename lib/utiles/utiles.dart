@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -35,3 +36,6 @@ Future<Uint8List?>pickImager() async {
   }
   return null;
 }
+
+
+FirebaseFirestore firebaseFirestore=FirebaseFirestore.instance;

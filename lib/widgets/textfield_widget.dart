@@ -4,14 +4,18 @@ import '../utiles/colors.dart';
 
 class TextFieldWidget extends StatelessWidget {
   final TextEditingController txtController;
-final bool passView;
-   const TextFieldWidget({Key? key, required this.txtController, required this.passView, }) : super(key: key);
+  final Function(String)? onSubmitted;
+  final bool passView;
 
+  const TextFieldWidget(
+      {Key? key, required this.txtController, required this.passView, this.onSubmitted,})
+      : super(key: key);
 
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      onSubmitted:onSubmitted,
       controller: txtController,
       obscureText: passView,
       decoration: InputDecoration(

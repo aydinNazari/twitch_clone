@@ -1,16 +1,15 @@
 import 'dart:typed_data';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:twitch_clone/models/livestream.dart';
 import 'package:twitch_clone/providers/user_provider.dart';
 import 'package:twitch_clone/resources/storage_methods.dart';
+import 'package:uuid/uuid.dart';
 
 import '../utiles/utiles.dart';
 
 class FireStoreMethods {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final StorageMethods _storagMethods = StorageMethods();
 
   //final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -21,7 +20,7 @@ class FireStoreMethods {
     String chanalId = '';
     try {
       if (title.isNotEmpty && image != null) {
-        if (!((await _firestore
+        if (!((await firebaseFirestore
                 .collection('livestream')
                 .doc(user.user.uid + user.user.username)
                 .get())
@@ -42,7 +41,7 @@ class FireStoreMethods {
             viewers: 0,
           );
 
-          _firestore
+          firebaseFirestore
               .collection('livestream')
               .doc(chanalId)
               .set(liveStream.toMap());
@@ -58,16 +57,39 @@ class FireStoreMethods {
     return chanalId;
   }
 
+  Future<void> chat(String text, String id, BuildContext context) async {
+    final user = Provider.of<UserProvider>(context, listen: false).user;
+    try {
+      String commentId = const Uuid().v1();
+      await firebaseFirestore
+          .collection('livestream')
+          .doc(id)
+          .collection('comments')
+          .doc(commentId)
+          .set(
+        {
+          'username': user.username,
+          'message': text,
+          'uid': user.uid,
+          'creatAt': DateTime.now(),
+          'commentId': commentId
+        },
+      );
+    } on FirebaseException catch (e) {
+      showSnackBar(context, e.message!, Colors.red);
+    }
+  }
+
   Future<void> endLiveStream(String channalId) async {
     print('girdiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii');
     try {
-      QuerySnapshot snap = await _firestore
+      QuerySnapshot snap = await firebaseFirestore
           .collection('livestream')
           .doc(channalId)
           .collection('comments')
           .get();
       for (int i = 0; i < snap.docs.length; i++) {
-        _firestore
+        firebaseFirestore
             .collection('livestream')
             .doc(channalId)
             .collection('comments')
@@ -78,12 +100,12 @@ class FireStoreMethods {
       }
       print(
           '777777777777777777777777777777777777777777777777777777777777777777');
-     /* var aa = (await _firestore
+      /* var aa = (await _firestore
           .collection('livestream')
           .doc(channalId)
           .get());*/
       print(channalId);
-      await _firestore.collection('livestream').doc(channalId).delete();
+      await firebaseFirestore.collection('livestream').doc(channalId).delete();
     } catch (e) {
       print(e.toString());
     }
@@ -91,7 +113,7 @@ class FireStoreMethods {
 
   Future<void> updateViewCount(String id, bool isIncrease) async {
     try {
-      await _firestore.collection('livestream').doc(id).update({
+      await firebaseFirestore.collection('livestream').doc(id).update({
         'viewers': FieldValue.increment(isIncrease ? 1 : -1),
       });
     } catch (e) {
